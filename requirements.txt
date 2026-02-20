@@ -1,0 +1,4 @@
+Django==6.0.2
+psycopg2==2.9.11
+djangorestframework==3.16.1
+django-filter==25.2
