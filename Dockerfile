@@ -1,4 +1,5 @@
-ARG VERSION=3.14
+ARG VERSION=3.13
+ARG DEV=false
 
 FROM python:${VERSION}-alpine AS builder
 
@@ -6,7 +7,8 @@ WORKDIR /app
 
 ENV PYTHONUNBUFFERED=1
 
-COPY requirements.txt .
+COPY requirements.txt /tmp/requirements.txt
+COPY requirements.dev.txt /tmp/requirements.dev.txt
 
 RUN apk add --no-cache \
         postgresql-dev \
@@ -14,7 +16,11 @@ RUN apk add --no-cache \
         musl-dev && \
     python -m venv /py && \
     /py/bin/pip install --upgrade pip && \
-    /py/bin/pip install -r requirements.txt && \
+    /py/bin/pip install -r /tmp/requirements.txt && \
+    if [[ "$DEV"=="true" ]]; then \
+        /py/bin/pip install -r /tmp/requirements.dev.txt ; \
+    fi && \
+    rm -rf /tmp && \
     apk del gcc musl-dev
 
 
@@ -27,7 +33,7 @@ ENV PYTHONUNBUFFERED=1
 RUN apk add --no-cache \
         postgresql-libs
 
-COPY --from=Builder /py /py
+COPY --from=builder /py /py
 
 ENV PATH="/py/bin:$PATH"
 

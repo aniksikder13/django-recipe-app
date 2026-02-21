@@ -1,0 +1,53 @@
+services:
+    backend:
+        build:
+            context: .
+            args:
+                - DEV=true
+            dockerfile: Dockerfile
+        container_name: django-recipe-app
+        ports:
+        - '${APP_PORT}:${APP_PORT}'
+        environment:
+            POSTGRES_HOST: ${POSTGRES_HOST}
+            POSTGRES_PORT: '${POSTGRES_PORT}'
+            POSTGRES_DB: '${POSTGRES_DB}'
+            POSTGRES_USER: '${POSTGRES_USER}'
+            POSTGRES_PASSWORD: '${POSTGRES_PASSWORD}'
+        depends_on:
+            db:
+                condition: service_healthy
+        restart: unless-stopped
+        read_only: true
+        networks:
+        - app-net
+        volumes:
+          - ${PWD}:/app
+        mem_limit: 515M
+        cpus: '0.5'
+
+    db:
+        image: postgres:18-alpine
+        container_name: app-db
+        environment:
+            POSTGRES_DB: '${POSTGRES_DB}'
+            POSTGRES_USER: '${POSTGRES_USER}'
+            POSTGRES_PASSWORD: '${POSTGRES_PASSWORD}'
+        volumes:
+        - app-data:/var/lib/postgresql/data
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        restart: unless-stopped
+        networks:
+        - app-net
+        mem_limit: 515M
+        cpus: '0.5'
+
+volumes:
+  app-data:
+
+networks:
+  app-net:
