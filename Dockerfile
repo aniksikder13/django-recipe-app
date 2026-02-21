@@ -7,8 +7,7 @@ WORKDIR /app
 
 ENV PYTHONUNBUFFERED=1
 
-COPY requirements.txt /tmp/requirements.txt
-COPY requirements.dev.txt /tmp/requirements.dev.txt
+COPY requirements*.txt /tmp/
 
 RUN apk add --no-cache \
         postgresql-dev \
@@ -17,12 +16,11 @@ RUN apk add --no-cache \
     python -m venv /py && \
     /py/bin/pip install --upgrade pip && \
     /py/bin/pip install -r /tmp/requirements.txt && \
-    if [[ "$DEV"=="true" ]]; then \
+    if [ "$DEV"=="true" ]; then \
         /py/bin/pip install -r /tmp/requirements.dev.txt ; \
     fi && \
     rm -rf /tmp && \
     apk del gcc musl-dev
-
 
 FROM python:${VERSION}-alpine AS final
 
