@@ -25,6 +25,12 @@ services:
           - ${PWD}:/app
         mem_limit: 515M
         cpus: '0.5'
+        command: >
+            sh -c "
+                python manage.py wait_for_db &&
+                python manage.py migrate &&
+                python manage.py runserver 0.0.0.0:8000
+            "
 
     recipe-db:
         image: postgres:18-alpine

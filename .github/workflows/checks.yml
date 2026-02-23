@@ -31,6 +31,9 @@ jobs:
             - name: Lint
               run: docker compose run --rm backend sh -c "flake8"    
 
+            - name: Wait for DB
+              run: python manage.py wait_for_db
+
             - name: Test
               run: docker compose run --rm backend sh -c "python manage.py test"    
             
