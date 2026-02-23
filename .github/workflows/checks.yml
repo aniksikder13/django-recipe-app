@@ -31,6 +31,6 @@ jobs:
             - name: Lint
               run: docker compose run --rm backend sh -c "flake8"    
 
-            - name: Lint
+            - name: Test
               run: docker compose run --rm backend sh -c "python manage.py test"    
             
