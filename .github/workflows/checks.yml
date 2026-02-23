@@ -1,39 +1,51 @@
----
 name: Checks
 
 on:
-    push:
-        branches:
-        - 'main'
-    workflow_dispatch:
+  push:
+    branches:
+      - 'main'
+  workflow_dispatch:
+
+env:  # shared environment for all jobs
+  APP_PORT: ${{ secrets.APP_PORT }}
+  DB_PORT: ${{ secrets.DB_PORT }}
+  DB_NAME: ${{ secrets.DB_NAME }}
+  DB_USER: ${{ secrets.DB_USER }}
+  DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+  DB_HOST: ${{ secrets.DB_HOST }}
 
 jobs:
-    lint:
-        runs-on: ubuntu-latest
-        environment: app-env
-        env:
-            APP_PORT: ${{secrets.APP_PORT}}
-            DB_PORT: ${{secrets.DB_PORT}}
-            DB_NAME: ${{secrets.DB_NAME}}
-            DB_USER: ${{secrets.DB_USER}}
-            DB_PASSWORD: ${{secrets.DB_PASSWORD}}
-            DB_HOST: ${{secrets.DB_HOST}}
-        steps:
-            - name: Login to Docker Hub
-              uses: docker/login-action@v3
-              with:
-                username: ${{ secrets.DOCKER_HUB_USERNAME }}
-                password: ${{ secrets.DOCKER_HUB_ACCESS_KEY }}
+  Lint:
+    runs-on: ubuntu-latest
+    environment: app-env
+    steps:
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_KEY }}
 
-            - name: Get the Codes
-              uses: actions/checkout@v6   
+      - name: Checkout code
+        uses: actions/checkout@v6
 
-            - name: Lint
-              run: docker compose run --rm recipe-backend sh -c "flake8"    
+      - name: Lint
+        run: docker compose run --rm recipe-backend sh -c "flake8"
 
-            - name: Wait for DB
-              run: python manage.py wait_for_db
+  Test:
+    runs-on: ubuntu-latest
+    environment: app-env
+    steps:
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_KEY }}
 
-            - name: Test
-              run: docker compose run --rm recipe-backend sh -c "python manage.py test"    
-            
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Wait for DB
+        run: python manage.py wait_for_db
+
+      - name: Test
+        run: docker compose run --rm recipe-backend sh -c "python manage.py test"
